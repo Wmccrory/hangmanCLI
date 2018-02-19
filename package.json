@@ -1,0 +1,19 @@
+{
+  "name": "hangmancli",
+  "version": "1.0.0",
+  "description": "Hangman game using command line interface and constructors",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wmccrory/hangmanCLI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wmccrory/hangmanCLI/issues"
+  },
+  "homepage": "https://github.com/Wmccrory/hangmanCLI#readme"
+}
