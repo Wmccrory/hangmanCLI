@@ -1,8 +1,10 @@
+//create new letter object
 var Letter = function(name) {
   this.name = name;
   this.guess = false;
 }
 
+//toString shortcut for display purposes
 Letter.prototype.toString = function() {
 	var letterDisplay = this.name;
 
@@ -13,6 +15,7 @@ Letter.prototype.toString = function() {
 	}
 }
 
+//check hidden word for matching letter
 var LetterCheck = function(input, variable) {
 	if (input.toUpperCase() === variable.name.toUpperCase()) {
 		variable.guess = true;

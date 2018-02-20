@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Wmccrory/hangmanCLI/issues"
   },
-  "homepage": "https://github.com/Wmccrory/hangmanCLI#readme"
+  "homepage": "https://github.com/Wmccrory/hangmanCLI#readme",
+  "dependencies": {
+    "inquirer": "^5.1.0"
+  }
 }

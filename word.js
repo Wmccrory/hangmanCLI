@@ -1,21 +1,26 @@
+//pull letter mechanics from letter.js
 var Letter = require("./letter.js");
-//
 
-var secret = "Secret";
-var secretArray = secret.split("");
-var hiddenArray = [];
+//pull secret word (var secret) from wordBank.js
+var WordBank = require("./wordBank.js");
+// wordInitialize = new WordBank;
 
+//function bank////////////////
 
+//set initial word//
 var WordSetter = function(input) {
-	for (i = 0; i < input.length; i++) {
-		var letter = new Letter.Letter(secretArray[i]);
+	wordInitialize = new WordBank;
+	hiddenArray = [];
+
+	for (i = 0; i < secret.length; i++) {
+		var letter = new Letter.Letter(secret[i]);
 		hiddenArray.push(letter);
 	}
 
-	var wordDisplay = hiddenArray.join(" ");
-	console.log(wordDisplay);
+	wordDisplay = hiddenArray.join(" ");
 }
 
+//User Input guess mechanics
 var LetterGuesser = function(input) {
 	for (i = 0; i < hiddenArray.length; i++) {
 		Letter.LetterCheck(input, hiddenArray[i])
@@ -26,9 +31,8 @@ var LetterGuesser = function(input) {
 
 }
 
-WordSetter(secretArray);
-LetterGuesser("c");
-LetterGuesser("e");
-LetterGuesser("p");
-console.log(hiddenArray);
-console.log(secretArray);
+//exporting module
+module.exports = {
+WordSetter,
+LetterGuesser,
+}
