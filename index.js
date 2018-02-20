@@ -9,9 +9,10 @@ var inquirer = require("inquirer")
 var wins = 0; //wins
 var losses = 0; //losses
 var chances = 6; //chances
+var winstate = false;
 
 var toneSet = [
-"1",
+"Nosferatu has you now. You fade into unconciousness, your last memory of unfathomable pain...",
 "You're wrestling with Nosferatu. You're losing blood quickly; but you can FEEL the sunlight beginning to rise from the water's horizon. You are so close to survival...",
 "Blood is flowing down your face and stinging your eyes. You've dropped the torch; for at this point you would be just as blind with the light of day...",
 "Your torch is smoldering. It saved you from the Monster's attack, but at a cost. If you did not know this ship as only a Captain could, you would be surely lost...",
@@ -21,10 +22,10 @@ var toneSet = [
 ];
 
 var nosAction = [
-"1",
+"The door, and the sun, seem but a distant memory.",
 "You've reached the door. As you fumble with the knob, rotten teeth sink into your neck. You howl with pain and begin flailing at the Ghoul.",
 "A rat pounces on your face. You fling it off, and with it ribbons of the flesh from your brow. A deception from the Ghoul, albeit a painful one.",
-"Nosferatu shows himself. His outstretched hands reach for your neck. You swat him with the lit end of your torch. An unholy shriek pierces the heavens, but it seems to have warded him off.",
+"Nosferatu shows himself. His outstretched hands reach for your neck. You swat him with the lit end of your torch. An unholy shriek pierces the heavens, and it seems to have warded him off.",
 "Out of the corner of your eye you see a moving figure. As you turn to face it you feel its long nails drag across your back. The Ghoul has retreated back into the shadows.",
 "You feel a sharp pain, followed by a warm, wet feeling running down your arm. You look down and see red.",
 ]
@@ -47,7 +48,11 @@ function userGuesser() {
 	if (chances === 0) {
 		losses++;
 		console.log("game over");
-		gameStart()
+		gameReset()
+	} else if (winstate === true) {
+		wins++;
+		console.log("You win!");
+		gameReset()
 	} else {
 		inquirer.prompt(
 		{
@@ -90,9 +95,30 @@ function checkLetter(input) {
 		console.log("\x1b[37m" + toneSet[chances], "\x1b[0m");
 		console.log("You have" + "\x1b[31m", chances + " pints of blood " + "\x1b[0m" + "remaining");
 		Word.LetterGuesser(input);
+		winYet();
 	}
 }
 
+//function checking if win condition met
+function winYet () {
+	for (i = 0; i < hiddenArray.length; i++) {
+		if (hiddenArray[i].guess === true) {
+			winstate = true;
+		} else {
+			return winstate = false;
+		}
+	}
+}
+
+//resetting game
+function gameReset() {
+	chances = 6;
+	guessedLetters = [];
+	winstate = false;
+	gameStart()
+}
+
+//initializing game
 function gameStart() {
 	//entrance message
 	if (wins === 0 && losses === 0) {
@@ -167,3 +193,5 @@ function gameStart() {
 }	
 
 gameStart()
+
+//testing area
