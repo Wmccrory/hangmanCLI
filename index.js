@@ -9,8 +9,10 @@ var inquirer = require("inquirer")
 var wins = 0; //wins
 var losses = 0; //losses
 var chances = 6; //chances
-var winstate = false;
+var winstate = false; //win state checked every time a correct letter is guessed
+var guessedLetters = [] //array holding all guessed letters to prevent repeated guesses
 
+//flavor text that gives a sense of how 'close' you are to losing
 var toneSet = [
 "Nosferatu has you now. You fade into unconciousness, your last memory of unfathomable pain...",
 "You're wrestling with Nosferatu. You're losing blood quickly; but you can FEEL the sunlight beginning to rise from the water's horizon. You are so close to survival...",
@@ -21,6 +23,7 @@ var toneSet = [
 "You stand on the ship's deck. Your only light is a dimly lit torch that is fading quickly, but you know you just need outwait the Ghoul until the Sun rises..."
 ];
 
+//flavor text when you 'lose' some blood i.e. wrong letter
 var nosAction = [
 "The door, and the sun, seem but a distant memory.",
 "You've reached the door. As you fumble with the knob, rotten teeth sink into your neck. You howl with pain and begin flailing at the Ghoul.",
@@ -30,7 +33,93 @@ var nosAction = [
 "You feel a sharp pain, followed by a warm, wet feeling running down your arm. You look down and see red.",
 ]
 
-var guessedLetters = []
+//losing splash image
+function loseAscii () {
+	console.log("====================================================================================================");
+	console.log("====================================================================================================");
+	console.log(".-so:....-/.--..---------+/---------+--/o++---+-/--.-............./-dNdMMdso////:-/sso/:+....:-`````");
+	console.log("-so----.-+..------------/o---------s:--++:/..::::-................s-:mmmMNys++///::sso/:o.....+`````");
+	console.log("yo-.--..+-....-..------:o---------+-/-:+:+..././..................o..+mddMdys+///::oso+--.....-:``  ");
+	console.log("+....../-.....---------s---------+:-:-+s::..-:-:..................+-..omhNMdss///:-+sso:-....../``  ");
+	console.log("....../:...--.--------o:--------/:---y+o+./o+:--.......``........`:....smhdmyss//:::shs+:...```.:   ");
+	console.log(".....::........------//--------:/--./o:o++yhhs/o/-.....```````````:.```-hdmhmyo+//::oysoo/:.````:.  ");
+	console.log("....-/........-...--:+--------:o:-.:o:/+/dyyhh//:+-...````````````:.````+ddhddso+/:-+soo--::`````/  ");
+	console.log("...-/.........-----:o-------.:s.--:h/.+/hmmddy+/o/...`````````````:.`````/dhhdhs+//:/sos--:/```  .- ");
+	console.log("..-+..........---/+s/--------o:...syydNNNNMMNysmdy+-`````````  `  -.``````+dhhdho+/::oss:./.``    :`");
+	console.log("..+-......---..-osyyo-------o....hNmNMMMMNMMNmmMmmdhs-```````     --``````.ymyohso+/:oss+--```    `:");
+	console.log("./-.....-----..+shhd+--...-s-...oNMMMMMMMMMNNNMmhdhhhyy-          --``````.hmddhyss+:/sso--.``     -");
+	console.log("/-...---..-...+/+yso-....-oo-..+mNMMMMMMMMMMMNMNmdddhhs`          -:`````.`:ydmNmhso//syyo/.```     ");
+	console.log(":...--.------++-s/-/....-o-.:.:mydMMNMMMMMMMMNMNdddddhy/``        .: ````.`..hmmmmhs+/syyooo/``     ");
+	console.log(".....-------/+-y/:::...-o-..:/dd:MMMNMMMMMMMMNNNmmmmdmds.``` `````-/  `````..-sdmNmys/+yss:/:/``    ");
+	console.log("..-.-------/+-+::./...-y:...-ydd/MMMNMNMMMMMMMNMNmNNNMMms``` `````:/ `````.....sdmmmy++ysy:://``    ");
+	console.log("----------/o-/:/.-/..-o-/...ssy+/MNmNs/MMMMMMNNNNNMMMMMNd: ` `````:+``````......hmmmdy+yyy/-:.```   ");
+	console.log("---------/o-///--/-.-o..:-.+o.+:oNNmm.dMMMMMMMNMNNMMMMMMNm/```````:+```.........-dmmNdyyhys--.```   ");
+	console.log("--------:o-//+--./.:o....:+y-/.-dNMNo+MMMMMMMMNMNNMMMNod+hhyho:``.:o```........../mNNNhshhyo/-````  ");
+	console.log("-------:o::/+----::o...-.:y//:.omhdy.mMMMMMMMMNMMNMMMNh.:oydyoo:``:o``............hNMNNyhhyo++/:.`  ");
+	console.log("------:o::/+----//o------y-:o./ho++ooNMMMMMMMMMMMNMMMMM:`./o-s:...:o`.............smNMNNhddy++:--::-");
+	console.log("-----:o::++-----so------y--+-:so::/:mdMMMMMMMMMMMMMMMMMh-:--:..``.:o............../mNNMNdddhs+--/.``");
+	console.log("----:o:-+/-----+o------y+.+--sss:../MMMMMMNMMMMMMMMMMMMN-````.....:o..............-mdNNMmyyyo//.:/  ");
+	console.log("---:o:-+/:----+s.-----o+./-.+os.//-dMMMMMMNMMMMMMMMMMMMNo``......./o...............hdNNNmdyss::/+`  ");
+	console.log("---o/-++o++:-ooo..---+o.::-.yy+---/MMMMMMMNMMMMMMMMMMMMNh.`...`.../o...............somMNNmhss/::`  `");
+	console.log("--o/-+/ymmmmhs//-.--/s.-/..oymy---hMMMMMMMMMMNMMMMMMMMMNm:..```.../o`..............+yhNNmmdhyysssyyy");
+	console.log("-+/-///-/yNNNmh/:-.:h--+..-y-ymh-/MMMMMMMMMMMMMMMMMMMMMMmo``````.`/+`...--://+osyhdmmmmmmmmdhhhyysss");
+	console.log("+/-///----ymNNNms/:h/.+-..o:..sNddMMMMMMMMMMNMMMMMMMMMMMNd``.:::/+yhyhdmmmmmNNmmddhysoo+oo+///+///::");
+	console.log("/-/+/----o/+ohNMMmh+:/:..:+....+NMMMMMMMMMMymMMMMMMMMMMMMN:/ddmmmdddhhhsooooooooo+///:::/+++++//::-.");
+	console.log("-:+/----o/--s-:yNMMdso--:s......s/ymMMMMMNN-yMMMMMMMMMMMNo.`:oys++////s:::::++oo+////////+////:::--.");
+	console.log("oo+---:s:--+-::/hNMMNmo:o:.....+:.+dMMMMmms`hMMMMMMMMms/````.+ys++/::/s:::::+ooo+++++/:::+////:::-..");
+	console.log("yysommho--/:--:+s+:dMMNdy-....-o.+-NMMMMmm..mMMMMMMh````-ohdNNys++/:::s/:::/+oo+++/+/:::-///:::::-..");
+	console.log("hhhhdmNNd+y:-o/s--o::yMMNdo-..o--+/MMMMMNy`.NMMMMMNs````.hNNmdhs+o////o+++++ooooooossssyyhhhddmddddd");
+	console.log("dhhhddhmNNdss+s:-//::/ymMMNh+:o.+-sMMMMMN/..MMMMMMN-``````:-`-hsosssyhdmmmNMMMMMMMMMMMMMMMMNNNmmddmd");
+	console.log("NdddmdhhhdNMmys.:/.---y-:yNNNd+-+.dMMMMMM-.-MMMMMMh``.-/+osydmMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNNNNN");
+	console.log("====================================================================================================");
+	console.log("====================================================================================================");
+	console.log("\x1b[33m" + "The Beast, Nosferatu, feasts tonight..." + "\x1b[0m");
+};
+
+//winning splash image
+function winAscii () {
+	console.log("====================================================================================================");
+	console.log("====================================================================================================");
+	console.log("yyyysssssssssssssssssssssssssssssssooo++//:::--:-....-----:::::::://+ooooooooo++++++ooooooo++ooooooo");
+	console.log("yyyyyyyyyyyyyyyyyyyyyyyssssssssssssssoooo+++++////--..----:::::/+ooo+++///////+++++++++++o+++++++++o");
+	console.log("yyyyyyyyyyyyyyyyyyyyyyyyyyyyysssssssssssssssssoooo++/:+::///:///+o+///////////////////+++++++++++ooo");
+	console.log("yyyyyyssssssssyyyyyyyyyyyyyyyyyyysssssssssssssssssssssso/+++/+////::::///////////////////+++++++++oo");
+	console.log("syyysssssssssssssyyyyyyyyyyyyyyyyyyyyyyyyysssssssooooooo+/+++/::::s////++////////////////+++++++++oo");
+	console.log("ssssssssssssssssssyyyyyyyyyyyyyyyyyyyyyyyyyysssssso+/++o///::-----+:::::////o////////:::///+++++++++");
+	console.log("sssssssssssssssssyyyyyyyyyyyyyyyyyyyyyyyyyyyyyysssoo++++/::-------/:::::::::/yy+::::::::::/+++++oooo");
+	console.log("oosssssssssssssssyyyyyyyyyyyyyyyyyyyyyyyyyyyyysssssoyshyssy/:-::::/--::::::::/shs::::::::///++++oooo");
+	console.log("ooosssssssssssssssssyysssyyyyyyyyyyyyyyyssyyyyysssssyhmmdyo+//://///:/-::::::::+so:---:/+++++++ooooo");
+	console.log("ssssssssssssssssssssssssssssossssssssssssyyyyyyyysso+ohmyo++++++oo+ooo/---------::----::::/+++oooooo");
+	console.log("ssssssssssssssssssssssso+//://+/+++++ssyyyyyyyyyysso+ssmyoso+//+ydddhs/---------------:::::-.-//////");
+	console.log("sssssssssssssssssssosssssso::::---:--/+osssyyysssso:/ssmh////--://hdy/:--------------.-::::///:----:");
+	console.log("+ossssssyysssss+//+/+osossso//+//-:///+/+oosssosoo+:/o/dd:/+++::::ymy+:-----::::----::/++++++oo++/++");
+	console.log("++oooo+oossoo++//++/////++++++ooo++oooo+////+++++:::o+/dd/:/::/::/sdh//:--:/++++/++//+oossssssssooos");
+	console.log("++///+///++/////:/:/:::::////+++/////+/++////::://::s:/hm+://+++:+/dd++o/++ooossoooosssssysyysssssss");
+	console.log("ooooooo++++//////////////::::::////::::///:::::::::s+-/ym+:::::::+:dds+s+++ooooossssyyyyyyyyyyyyyyyy");
+	console.log("ssssshyyyyyssysoo+++++o+///////////++++///++++++//+s+//sho///++o+o+yds/+s+/::///++++osyyyssyyyyyyyyy");
+	console.log("osssssssssyyyhhhhhhhyhdyyssssoys+++osoo++++++oo++yy+syhhys/+oooososyhy+oysoo++o+:---:/osyyssyyyyyyyy");
+	console.log("sssssosssoooo+oo++++oooooossyhhhyyshhhyys+++++//sys//osydyoo+++oooooss+ososssoosooooooosyssyyyyyyyyy");
+	console.log("sooo++oo++ooooosooo++++oo+++ohdh/sosyhmdddhhhsyyhhhhydhhddhhhhhhdyhsyssoysssssssssssssssyssyysssssss");
+	console.log("oossooooooooooooooo+/+++++++symdosshyhddddhhddmmddhyssssydysssyyhhhhmdyhhyossossssssssssssoossoooooo");
+	console.log("oooooooooooosssssssssoooooooyshdooyhyydNNNdhhhdddNmdmmmdddyhhhyyydydmmdhhhhhysooooooooooooooossososs");
+	console.log("ooooooooooooooooo+oooooooooohsoo+oydhydmNNmNmmmdddddmmmmmmdmddddhdmNmdhhhdhyhhyssssssoosssssssssssss");
+	console.log("oooooooooooooo+///++oooo+++ohsooooohmhdhdmmdmNmmmmdddmmmNNddmmmmmNNNmNNmmmmdddhysssssosoossosssossss");
+	console.log("sssssssossssso++/++oooossoosysssssssydddmmdhdmNNNNMNNNNNNMNmddddmNNmmNNNNNMNNmmmmdhyssssssssssssssss");
+	console.log("sssssssssssssssssssssssssssyyssssooosssyhhdmNNNNNMMNNNNNNNNmmddhdmmdmmmdmmmmdhhhhdNmssssssssssssssss");
+	console.log("hyyyyyyyyyyyyyyyyyyyyyssyyyhhyyysyyyyyyyyyyhNMNNNNNNNNmmmmmddhhhddmdddddddddhmhyhhmhyyyyyyyyyyyyyyyy");
+	console.log("ddddddddddhhhhhhyyyddhhhyyhhyhhhhhdyyhyyhhhdmNMMNNNNNNNNNNNNNNNmmmmmhmdddmdyhhhdddmhyyyyyyyyhhhhhhhh");
+	console.log("dddddddddhdhhyhhhhhyyyyyhhhyyyyhhhyyyyyhyyyhdmMMNNMMMMNMNmdddhhhddddhhhhhhdhyddddhdhsyhyyyyyyyyyyyyh");
+	console.log("hhhhhhhhhhhhdddhhyyyhhdhhhhhdddhyyso+odmmmmmmmmmNNNNNNmhhddhhdhdmdhddhyyhhhdhhhyyosssssyyyyysyyhhhyy");
+	console.log("hhhhhhhhhdhhhyyhhhhyyyyhhdddddddhhyhmmMMNmmNNmmhyhmmNNNysysoossyyyyyysoosysyyyysssyyyhdmddhddmNNNNNN");
+	console.log("ddhhhhhhhhyyyyyyyyyyyhhdddhhhyyyhyyyhhhdhhhhhhyyyyyhhhhhhssssysyyyyyysssyyyyyysyyyhdddhdmmmmmmNNNNNN");
+	console.log("hhyyyyyyysyyysysyyyhysssssssssysssoosssssyyssossssssysysssyyyyyyhdhyyyyssyyyyyyyyyyyyyyyyhhhddmmmmNN");
+	console.log("dhhhhhhhyyyyyhhhhhyyyyyyyyyssssssssssooooooossssssyyhddhhhdddhdmddmdddddhhhhhhhhhhyyyyyyyhhyyyhhdddd");
+	console.log("mmdddddhhhyyyssyysssssssssssoossssyyyyssssssossssssossssooosssssooossssssssssssssssyyysssssysssysyyh");
+	console.log("hhhhhyyyyyyyyssssssyyyhyyyyyyhhhdddmdddddhhdhyhdhysssoosssoooooooosssooossssssssssssyyyyyyyysssyyyyy");
+	console.log("====================================================================================================");
+	console.log("====================================================================================================");
+	console.log("\x1b[33m" + "The sun rises and the Beast Nosferatu retreats. You are very hurt, but you have bought time to hunt the fiend down before nightfall..." + "\x1b[0m");
+}
 
 //function bank
 
@@ -47,11 +136,11 @@ function wordSetter() {
 function userGuesser() {
 	if (chances === 0) {
 		losses++;
-		console.log("game over");
+		loseAscii()
 		gameReset()
 	} else if (winstate === true) {
 		wins++;
-		console.log("You win!");
+		winAscii()
 		gameReset()
 	} else {
 		inquirer.prompt(
@@ -73,7 +162,7 @@ function userGuesser() {
 				guessedLetters.push(data.variable);
 				console.log("======================");
 				checkLetter(data.variable);
-				setTimeout(function() {userGuesser()}, 1000);
+				userGuesser()
 			}
 		})
 	}
@@ -163,12 +252,12 @@ function gameStart() {
 		console.log("MMMMMMMMMMMMMMMMMMdyys+/+o+//++osyyyyyhmdo/+ddyssyyyyso//:::.-++o/osoyyyymNNMMNNNNNNNNNNNNMMNMMMMMMM");
 		console.log("MMMMMMMMMMMMMMMMMMMdhsso+oo+/+//+oyhhhhhy+:+sooossss+//////:-/+s++syydhhmNMMMMNNNNNMMMMMMMMMMMMMMMMM");
 		console.log("====================================================================================================");
-		console.log("==============WELCOME... TO...............==========================================================");
-		console.log("===============================================.....NOSFERATU'S GHOST SHIP.........=================");
+		console.log("============..WELCOME....TO........................................................=================");
+		console.log("============........................................NOSFERATU'S GHOST SHIP.........=================");
 		console.log("====================================================================================================");
 	} else {
 	console.log("You've logged " + wins + " wins so far.." +
-				"\nBut also " + losses + " losses..")
+				"\nAnd also " + losses + " losses..")
 	}
 	//
 	inquirer.prompt(
@@ -192,6 +281,7 @@ function gameStart() {
 	})
 }	
 
+//command starting the entire game process
 gameStart()
 
 //testing area
